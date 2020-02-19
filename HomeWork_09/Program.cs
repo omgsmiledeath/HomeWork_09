@@ -35,13 +35,11 @@ namespace HomeWork_09
             botClient = new TelegramBotClient(token, hc);
             var u = botClient.TestApiAsync().Result;
             Console.WriteLine(u);
-            //var me = botClient.GetMeAsync().Result;
-            // Console.WriteLine(me.Username);
+
 
             botClient.OnMessage += HanldeMessage;
             botClient.StartReceiving();
 
-            
 
             Console.ReadKey();
             string json = JsonConvert.SerializeObject(users);
@@ -51,9 +49,7 @@ namespace HomeWork_09
         static void HanldeMessage(object sender, Telegram.Bot.Args.MessageEventArgs e)
         {
             string text = $"{DateTime.Now.ToLongTimeString()}: {e.Message.Chat.FirstName} {e.Message.Chat.Id} {e.Message.Text}";
-            //Console.WriteLine(e.Message.Text);
-            var chatId = e.Message.Chat.Id;
-            botClient.SendTextMessageAsync(chatId, "Дратути");
+            botClient.SendTextMessageAsync(e.Message.Chat.Id, "Дратути");
             var user = new TelegramUser(e.Message.Chat.Id, e.Message.Chat.FirstName);
             
             if (!users.Contains(user)) users.Add(user);
