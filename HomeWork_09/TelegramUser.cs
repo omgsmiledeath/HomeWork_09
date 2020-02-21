@@ -14,6 +14,7 @@ namespace HomeWork_09
             this.id = id;
             this.name = name;
             messages = new List<string>();
+            Files = new List<string>();
         }
         private long id;
 
@@ -31,12 +32,16 @@ namespace HomeWork_09
             set { this.name = value; }
         }
 
+        public List<string> Files;
+
+
         public List<string> messages;
 
-        public void addMessage(string msg)
-        {
-            messages.Add(msg);
-        }
+        public void addMessage(string msg) => messages.Add(msg);
+  
+
+        public void addFile(string path) => Files.Add(path);
+            
 
         public bool Equals(TelegramUser user) => user.Id == this.id;
 

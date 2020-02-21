@@ -58,10 +58,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bot.cs" />
+    <Compile Include="Command.cs" />
     <Compile Include="HistorySaver.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ProxyParser.cs" />
     <Compile Include="TelegramUser.cs" />
+    <Compile Include="UsersBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
