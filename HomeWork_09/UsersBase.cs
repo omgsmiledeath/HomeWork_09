@@ -29,12 +29,12 @@ namespace HomeWork_09
             saveBase();
         }
 
-        static public void putUsersFile(TelegramUser user,string path)
-        {
-            if (!users.Contains(user)) users.Add(user);
-            users[users.IndexOf(user)].addFile($"{path}");
-            saveBase();
-        }
+        //static public void putUsersFile(TelegramUser user,string path)
+        //{
+        //    if (!users.Contains(user)) users.Add(user);
+        //    users[users.IndexOf(user)].addFile($"{path}");
+        //    saveBase();
+        //}
 
         static public void saveBase()
         {
