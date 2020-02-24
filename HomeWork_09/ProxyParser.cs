@@ -13,6 +13,11 @@ namespace HomeWork_09
     {
         static private List<WebProxy> proxylist = new List<WebProxy>();
         static public List<WebProxy> ProxyList { get { return proxylist; } }
+
+
+        /// <summary>
+        /// Получение списка прокси с сайта SSLPROXIES.ORG
+        /// </summary>
         static public void getProxyList()
         {
 
@@ -23,7 +28,7 @@ namespace HomeWork_09
                 MatchCollection mc = regex.Matches(htmp);
                 if (mc.Count > 0)
                 {
-                    Console.WriteLine("Начал парсить");
+                    Console.WriteLine("Добавление новых прокси в лист");
                     foreach (Match e in mc)
                     {
                         string[] temp = e.Value.Split(new string[] { @"</td><td>" }, StringSplitOptions.None);
@@ -31,9 +36,12 @@ namespace HomeWork_09
                     }
                 }
             };
-            Console.WriteLine("Прокси получены");
+            Console.WriteLine("Прокси лист составлен");
         }
 
+        /// <summary>
+        /// Удаление неактуальной прокси из листа
+        /// </summary>
         static public void BadProxyRemove()
         {
             if(proxylist.Count==1)
@@ -42,14 +50,18 @@ namespace HomeWork_09
             }
             else proxylist.RemoveAt(0);
         }
-
+        /// <summary>
+        /// Сохранение актуальной прокси
+        /// </summary>
         static public void SaveCurrentProxy()
         {
             string json =JsonConvert.SerializeObject(proxylist[0]);
             File.WriteAllText("proxy.txt", json);
             
         }
-
+        /// <summary>
+        /// Загрузка последней актуальной прокси из файла
+        /// </summary>
         static public void LoadProxy()
         {
             if (File.Exists("proxy.txt"))

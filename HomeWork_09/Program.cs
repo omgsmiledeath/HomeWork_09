@@ -18,27 +18,49 @@ namespace HomeWork_09
         
         public static void Main(string[] args)
         {
+            bool flag1 = false;
+            bool flag2 = false;
+            while (true)
+            {
+                if (flag1 & flag2) break;
+                if (!File.Exists("token.txt"))
+                {
+                    Console.Write("Не обнаржуен файл с токен ключем\n Введите ваш токен и файл будет автоматически создан:");
+                    string token = Console.ReadLine();
+                    using (StreamWriter sw = new StreamWriter("token.txt"))
+                    {
+                        sw.WriteLine(token);
+                    }
+                }
+                else flag1 = true;
 
+                if (!File.Exists("proxy.txt"))
+                {
+                    Console.WriteLine("Хотите указать вашу прокси? в противном случае будет использована функция автопоиска прокси");
+                    while (true)
+                    {
+                        var key = Console.ReadKey(true);
+                        if (key.Key == ConsoleKey.Y)
+                        {
+                            Console.Write("Хорошо, теперь укажите адресс и порт для вашей прокси \n Адресс:");
+                            string host = Console.ReadLine();
+                            Console.Write("Порт:");
+                            int port = 0;
+                            Int32.TryParse(Console.ReadLine(), out port);
+                            WebProxy wb = new WebProxy(host, port);
+                            string json = JsonConvert.SerializeObject(wb);
+                            File.WriteAllText("proxy.txt", json);
+                        }
+                    }
+                }
+                else flag2 = true;
+
+            }
             
+                       
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
-            //var proxy = new HttpToSocks5Proxy($"96.44.133.110", 58690); 
-            //var proxy = new WebProxy()
-            //{
-            //    Address = new Uri($"http://45.177.16.129:999"),
-            //    UseDefaultCredentials = false,
-            //};
-
-            ////var proxy = new HttpToSocks5Proxy(new[] {
-            ////new ProxyInfo("tor-proxy.com", 1080),
-            ////new ProxyInfo("random-socks.com", 1090),
-            ////new ProxyInfo("tor-proxy.com", 1080)
-            ////});
-
-            ////proxy.ResolveHostnamesLocally = true;
-            //var httpCliendHandler = new HttpClientHandler() { Proxy = proxy };
-            //HttpClient hc = new HttpClient(httpCliendHandler);
             Bot.Start();
             UsersBase.saveBase();
             

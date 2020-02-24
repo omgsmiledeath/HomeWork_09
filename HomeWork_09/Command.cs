@@ -7,12 +7,16 @@ using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot.Types.Enums;
 using Newtonsoft.Json;
+using System.Threading;
+
 namespace HomeWork_09
 {
     public static class Command
     {
-
-        public static void Test()
+        /// <summary>
+        /// Запуск команд бота
+        /// </summary>
+        public static void Start()
         {
             try
             {
@@ -23,14 +27,13 @@ namespace HomeWork_09
                 {
                     ProxyParser.SaveCurrentProxy();
                 }
-
+                else
+                {
+                    Console.WriteLine("Введен не верный токен для телеграм бота");
+                }
 
                 Bot.TelegramBot.OnMessage += MessageParser;
-
-                //Bot.TelegramBot.OnMessage += FileSeaking;
-                //Bot.TelegramBot.OnMessage += PhotoSeaking;
-
-                //Bot.TelegramBot.OnCallbackQuery += BotOnCallbackQueryReceived;
+                Bot.TelegramBot.OnCallbackQuery += TypeOfFile;
 
                 Bot.TelegramBot.StartReceiving();
 
@@ -40,39 +43,250 @@ namespace HomeWork_09
                 Console.WriteLine(ex.Message);
                 ProxyParser.BadProxyRemove();
                 Bot.setBotWithProxy();
-                Test();
+                Start();
                 return;
             }
 
         }
 
+        /// <summary>
+        /// Метод который ожидает в сообщении ответ выбора с клавиатуры , указанного типа файла
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        static async void TypeOfFile(object sender, Telegram.Bot.Args.CallbackQueryEventArgs e)
+        {
+            
+            var mess = e.CallbackQuery.Data;
+            Console.WriteLine(mess);
+            switch (mess)
+            {
+                case "Document":
+                        DirectoryInfo di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Document");
+                        var files = di.GetFiles();
+                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка документов");
+                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
+                        "файла укзанное в < >");
+                    foreach (var file in files)
+                        {
+                            await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, $"Имя файла - <{file.Name}>: \n" +
+                                $"Размер в КБ - {(float)file.Length / 1_024}");
+                    }
+                        Bot.TelegramBot.OnMessage -= MessageParser;
+                        Bot.TelegramBot.OnMessage += DocumentSender;
+                        break;
 
-        //static async void BotOnCallbackQueryReceived(object sender, Telegram.Bot.Args.CallbackQueryEventArgs e)
-        //{
-        //    var temp =Convert.ToInt32 (e.CallbackQuery.Data);
-        //    var e1 = e.CallbackQuery.Message;
-        //    Console.WriteLine(e1.MessageId);
-        //    await Bot.TelegramBot.AnswerCallbackQueryAsync(e.CallbackQuery.Id, "тест");
+                    case "Audio":
+                        di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Audio");
+                        files = di.GetFiles();
+                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка аудио");
+                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
+                        "файла укзанное в < >");
+                    foreach (var file in files)
+                        {
+                            await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, $"Имя файла - <{file.Name}>: \n" +
+                                $"Размер в КБ - {(float)file.Length/1_024}");
+                        }
+                        Bot.TelegramBot.OnMessage -= MessageParser;
+                        Bot.TelegramBot.OnMessage += AudioSender;
+                    break;
+
+                    case "Sticker":
+                        di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Sticker");
+                        files = di.GetFiles();
+                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка стикеров");
+                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
+                        "файла укзанное в < >");
+                    foreach (var file in files)
+                        {
+                            await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, $"Имя файла - <{file.Name}>: \n" +
+                                $"Размер в КБ - {(float)file.Length / 1_024}");
+                    }
+                        Bot.TelegramBot.OnMessage -= MessageParser;
+                        Bot.TelegramBot.OnMessage += StickerSender;
+                    break;
+
+                    case "Location":
+                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка данных локаций");
+                    di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Location");
+                        files = di.GetFiles();
+                        foreach (var file in files)
+                        {
+                        var loc = DeserializeLocation(file.FullName);
+                        await Bot.TelegramBot.SendLocationAsync(e.CallbackQuery.Message.Chat.Id,loc.latitude, loc.laptitude);
+                        }
+                    break;
+                    case "Photo":
+                        di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Photo");
+                        files = di.GetFiles();
+                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка фото");
+                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
+                        "файла укзанное в < >");
+                        foreach (var file in files)
+                        {
+                            await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, $"Имя файла - <{file.Name}>: \n" +
+                                $"Размер в КБ - {(float)file.Length / 1_024}");
+                        }
+                        Bot.TelegramBot.OnMessage -= MessageParser;
+                        Bot.TelegramBot.OnMessage += PhotoSender;
+                    break;
+                    case "Voice":
+                        di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Voice");
+                        files = di.GetFiles();
+                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка голосового файла");
+                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
+                        "файла укзанное в < >");
+                    foreach (var file in files)
+                        {
+                            await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, $"Имя файла - <{file.Name}>: \n" +
+                                $"Размер в КБ - {(float)file.Length / 1_024}");
+                    }
+                        Bot.TelegramBot.OnMessage -= MessageParser;
+                        Bot.TelegramBot.OnMessage += VoiceSender;
+                    break;
+            }
+        }
+        /// <summary>
+        /// ДЕсериализация файла с данными локации
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        static (float latitude,float laptitude) DeserializeLocation(string path)
+        {
+            string json = String.Empty;
+            using (StreamReader sr = new StreamReader(path))
+            {
+                json = sr.ReadToEnd();
+            }
+            return JsonConvert.DeserializeObject<ValueTuple<float, float>>(json);
+        }
+
+        /// <summary>
+        /// Метод который ожидает название  файла в сообщении и отправляет указанный файл пользователю
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        static async void DocumentSender (object sender,Telegram.Bot.Args.MessageEventArgs e)
+        {
+            var mess = e.Message.Text;
+            string path = CreaterPath(e.Message.Chat.Id, mess, MessageType.Document);
+            UsersBase.Saver(e);
+            if (File.Exists(path))
+            {
+                Send(path, e.Message.Chat.Id, MessageType.Document);
+            Bot.TelegramBot.OnMessage -= DocumentSender;
+            Bot.TelegramBot.OnMessage += MessageParser;
+            }
+            else await Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id, "Вы указали не верное имя файла, повторите ввод");
+        }
+
+        /// <summary>
+        /// Метод который ожидает название аудио файла в сообщении и отправляет указанный файл пользователю
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        static async void AudioSender(object sender, Telegram.Bot.Args.MessageEventArgs e)
+        {
+            var mess = e.Message.Text;
+            string path = CreaterPath(e.Message.Chat.Id, mess, MessageType.Audio);
+            UsersBase.Saver(e);
+            if (File.Exists(path))
+            {
+                Send(path, e.Message.Chat.Id, MessageType.Audio);
+                Bot.TelegramBot.OnMessage -= AudioSender;
+                Bot.TelegramBot.OnMessage += MessageParser;
+             }
+            else await Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id, "Вы указали не верное имя файла, повторите ввод");
+    }
+
+        /// <summary>
+        /// Метод который ожидает название стикера в сообщении и отправляет указанный файл пользователю
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        static async void StickerSender(object sender, Telegram.Bot.Args.MessageEventArgs e)
+        {
+            var mess = e.Message.Text;
+            string path = CreaterPath(e.Message.Chat.Id, mess, MessageType.Sticker);
+            UsersBase.Saver(e);
+            if (File.Exists(path))
+            {
+                Send(path, e.Message.Chat.Id, MessageType.Sticker);
+                Bot.TelegramBot.OnMessage -= StickerSender;
+                Bot.TelegramBot.OnMessage += MessageParser;
+            }
+            else await Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id, "Вы указали не верное имя файла, повторите ввод");
+        }
+
+        /// <summary>
+        /// Метод который ожидает название голосового файла в сообщении и отправляет указанный файл пользователю
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        static async void VoiceSender(object sender, Telegram.Bot.Args.MessageEventArgs e)
+        {
+            var mess = e.Message.Text;
+            string path = CreaterPath(e.Message.Chat.Id, mess, MessageType.Voice);
+            UsersBase.Saver(e);
+            if (File.Exists(path))
+            {
+                Send(path, e.Message.Chat.Id, MessageType.Voice);
+                Bot.TelegramBot.OnMessage -= VoiceSender;
+                Bot.TelegramBot.OnMessage += MessageParser;
+            }
+            else await Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id, "Вы указали не верное имя файла, повторите ввод");
+        }
+
+        /// <summary>
+        /// Метод который ожидает название файла в сообщении и отправляет указанный файл пользователю
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        static async void PhotoSender(object sender, Telegram.Bot.Args.MessageEventArgs e)
+        {
+            var mess = e.Message.Text;
+            string path = CreaterPath(e.Message.Chat.Id, mess, MessageType.Photo);
+            UsersBase.Saver(e);
+            if (File.Exists(path))
+            {
+                Send(path, e.Message.Chat.Id, MessageType.Photo);
+                Bot.TelegramBot.OnMessage -= PhotoSender;
+                Bot.TelegramBot.OnMessage += MessageParser;
+            }
+            else await Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id, "Вы указали не верное имя файла, повторите ввод");
+            
+        }
 
 
-        //    var inlineKeyboard = new InlineKeyboardMarkup(new[]
-        //                        {
-        //                new [] // first row
-        //                {
-        //                    InlineKeyboardButton.WithCallbackData("Сильное сжатие", "0"),
-        //                    InlineKeyboardButton.WithCallbackData("среднее сжатие", "1"),
-        //                    InlineKeyboardButton.WithCallbackData("Слабое сжатие", "2")
-        //                }
-        //            });
+        /// <summary>
+        /// Метод для отправки клавиатуры выбора типа файлов для отправки пользователю
+        /// </summary>
+        /// <param name="id">ID пользователя в телеграмме</param>
+        static async void GetType(long id)
+        {
+            var inlineKeyboard = new InlineKeyboardMarkup(new[]
+                                {
+                        new [] 
+                        {
+                            InlineKeyboardButton.WithCallbackData("Document", $"{MessageType.Document}"),
+                            InlineKeyboardButton.WithCallbackData("Photo", $"{MessageType.Photo}"),
+                            InlineKeyboardButton.WithCallbackData("Audio", $"{MessageType.Audio}"),
+                            InlineKeyboardButton.WithCallbackData("Stiker", $"{MessageType.Sticker}"),
+                            InlineKeyboardButton.WithCallbackData("Location", $"{MessageType.Location}"),
+                            InlineKeyboardButton.WithCallbackData("Voice", $"{MessageType.Voice}")
+                        }
+                    });
+            await Bot.TelegramBot.SendTextMessageAsync(id,"Выберите нужный тип файла:",replyMarkup:inlineKeyboard);
+        }
 
-        //    Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id, "Выберите вариант сжатия", replyMarkup: inlineKeyboard);
-
-        //}
-
-
-
+        /// <summary>
+        /// Метод вызывающий конкретный обработчик для сообщения
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e">сообщений из телеграма</param>
         static void MessageParser(object sender, Telegram.Bot.Args.MessageEventArgs e)
         {
+            
             switch (e.Message.Type)
             {
                 case MessageType.Text:
@@ -93,160 +307,216 @@ namespace HomeWork_09
                 case MessageType.Location:
                     LocationSeaker(e);
                     break;
-                case MessageType.Contact:
-                    break;
                 case MessageType.Voice:
+                    VoiceSeaker(e);
                     break;
             }
 
         }
 
+        /// <summary>
+        /// Метод обрабатывающий сообщение из телеграма на предмет голосовых сообщений
+        /// </summary>
+        /// <param name="e">входящее сообщение из телеграма</param>
+        static void VoiceSeaker(Telegram.Bot.Args.MessageEventArgs e)
+        {
+            Console.WriteLine(e.Message.Voice.FileUniqueId);
+            string path = CreaterPath(e.Message.Chat.Id, e.Message.Voice.FileUniqueId, e.Message.Type);
+            DownLoad(e.Message.Voice.FileId, path);  
+        }
+
+
+        /// <summary>
+        /// Метод обрабатывающий сообщение из телеграма на предмет данных локации
+        /// </summary>
+        /// <param name="e">входящее сообщение из телеграма</param>
         static void LocationSeaker(Telegram.Bot.Args.MessageEventArgs e)
         {
             Console.WriteLine($"{e.Message.Location.Latitude} - {e.Message.Location.Longitude}");
-            var loc = (e.Message.Location.Latitude, e.Message.Location.Longitude);
+            var loc = (Latitude:e.Message.Location.Latitude, Longitude: e.Message.Location.Longitude);
             SaveSerializeFile(JsonConvert.SerializeObject(loc),
                 $"{ e.Message.MessageId}",
                 e.Message.Chat.Id,
                 e.Message.Type);
-
         }
 
+        /// <summary>
+        /// Метод для сохранения сериализованных не типичных данных
+        /// </summary>
+        /// <param name="json">Сериализованные в JSON данные</param>
+        /// <param name="path">название файла</param>
+        /// <param name="id">id пользователя</param>
+        /// <param name="type">тип данных для сохранения в отдельной папке</param>
         static void SaveSerializeFile(string json,string path,long id,MessageType type)
         {
             string fullpath = id + @"\" + type + @"\" ;
             FileInfo fi = new FileInfo(fullpath+path);
-            createrFile(id, "", path, type);
-
+            createrFile(id, path, type);
             using (StreamWriter sw = fi.CreateText())
             {
                 sw.WriteLine(json);
             }
-        } 
+        }
 
-        static async void MessageSeaker(Telegram.Bot.Args.MessageEventArgs e)
+        /// <summary>
+        /// Метод обрабатывающий сообщение из телеграма
+        /// </summary>
+        /// <param name="e">входящее сообщение из телеграма</param>
+        static void MessageSeaker(Telegram.Bot.Args.MessageEventArgs e)
         {
             string text = $"{DateTime.Now.ToLongTimeString()}: {e.Message.Chat.FirstName} {e.Message.Chat.Id} {e.Message.Text}";
-            await Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id, "Дратути");
             Console.WriteLine($"{e.Message.Chat.Username}:{e.Message.Text}");
             var user = new TelegramUser(e.Message.Chat.Id, e.Message.Chat.Username);
+            UsersBase.putUsersMessage(user, e);
+            if (e.Message.Text == @"/export")
+            {
+
+                GetType(e.Message.Chat.Id);
+            }
+
         }
 
-        static void AudioSeaking(Telegram.Bot.Args.MessageEventArgs e)
+
+        /// <summary>
+        /// Метод обрабатывающий сообщение из телеграма на предмет аудио файлов
+        /// </summary>
+        /// <param name="e">входящее сообщение из телеграма</param>
+        static async void AudioSeaking(Telegram.Bot.Args.MessageEventArgs e)
         {
-            Console.WriteLine($"Audio FileID:{e.Message.Audio.FileId}");
-            Console.WriteLine($"Audio Title:{e.Message.Audio.Title}");
+
+            string path = CreaterPath(e.Message.Chat.Id, e.Message.Audio.FileUniqueId, e.Message.Type);
             DownLoad(e.Message.Audio.FileId,
-                   e.Message.Audio.FileUniqueId,
-                   e.Message.Chat.Username == null ? e.Message.Chat.FirstName : e.Message.Chat.Username,
-                   e.Message.Chat.Id,
-                   e.Message.Type);
+                   path);
+            await Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id, "Ваш аудио файл принят");
              
         }
-
-        static void StikerSeaking(Telegram.Bot.Args.MessageEventArgs e)
+        /// <summary>
+        /// Метод обрабатывающий сообщение из телеграма стикеров
+        /// </summary>
+        /// <param name="e">входящее сообщение из телеграма</param>
+        static async void StikerSeaking(Telegram.Bot.Args.MessageEventArgs e)
         {
-            Console.WriteLine($"Stiker FileID:{e.Message.Sticker.FileId}");
-            Console.WriteLine($"Stiker Emoji:{e.Message.Sticker.Emoji}");
+            
+            string path = CreaterPath(e.Message.Chat.Id, e.Message.Sticker.FileUniqueId+".webp", e.Message.Type);
             DownLoad(e.Message.Sticker.FileId,
-                   e.Message.Sticker.Emoji,
-                   e.Message.Chat.Username == null ? e.Message.Chat.FirstName : e.Message.Chat.Username,
-                   e.Message.Chat.Id,
-                   e.Message.Type);
+                   path);
+            await Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id, "Ваш стикер принят");
         }
-
-        static  void FileSeaking(Telegram.Bot.Args.MessageEventArgs e)
+        /// <summary>
+        /// Метод обрабатывающий сообщение из телеграма на предмет файлов
+        /// </summary>
+        /// <param name="e">входящее сообщение из телеграма</param>
+        static async void FileSeaking(Telegram.Bot.Args.MessageEventArgs e)
         {
-                Console.WriteLine(e.Message.Document.FileId);
-                Console.WriteLine(e.Message.Document.FileName);
-                Console.WriteLine(e.Message.Document.FileSize);
 
+            string path = CreaterPath(e.Message.Chat.Id, e.Message.Document.FileName, e.Message.Type);
                 DownLoad(e.Message.Document.FileId,
-                    e.Message.Document.FileName,
-                    e.Message.Chat.Username == null ? e.Message.Chat.FirstName : e.Message.Chat.Username,
-                    e.Message.Chat.Id,
-                    e.Message.Type);
-
+                  path);
+            await Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id, "Ваш файл принят");
         }
 
-
+        /// <summary>
+        /// Метод обрабатывающий сообщение из телеграма на предмет фото
+        /// </summary>
+        /// <param name="e">входящее сообщение из телеграма</param>
         static async void PhotoSeaking (Telegram.Bot.Args.MessageEventArgs e)
         {
-            Console.WriteLine(e.Message.Photo.Length);
-            Console.WriteLine(e.Message.MessageId);
             var type = e.Message.Type;
             var photo = e.Message.Photo;
 
-            await Bot.TelegramBot.SendPhotoAsync(e.Message.Chat.Id, photo[2].FileId);
-
-            foreach (var item in photo)
-            {
-                Console.WriteLine($"{item.FileId} {item.FileUniqueId} {item.FileSize} ");
-            }
             DownLoad(photo[2].FileId,
-               "ф" + photo[2].FileSize + ".jpg",
-               e.Message.Chat.Username == null ? e.Message.Chat.FirstName : e.Message.Chat.Username,
-               e.Message.Chat.Id,
-               type);
+              CreaterPath(e.Message.Chat.Id,
+              "ф" + photo[2].FileSize + ".jpg",
+              type));
+            await Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id, "Ваше фото принято");
         }
 
 
 
-
-        static async void DownLoad(string field, string path, string name,long id,Telegram.Bot.Types.Enums.MessageType type)
+        /// <summary>
+        /// Метод закгружающий файлы 
+        /// </summary>
+        /// <param name="field">Уникальный id файла</param>
+        /// <param name="path">конечный путь куда скачается файл</param>
+        static async void DownLoad(string field, string path)
         {
             
                 var file = await Bot.TelegramBot.GetFileAsync(field);
-                createrFile(id, name, path,type);
-                // var user = new TelegramUser(id, name);
-                //UsersBase.putUsersFile(user, id + @"\" + path);
+
                 try
                 {
-                    using (BufferedStream bs = new BufferedStream(new FileStream(id + @"\" +type+ @"\" + path, FileMode.Create)))
+                    using (BufferedStream bs = new BufferedStream(new FileStream(path, FileMode.Create)))
                         await Bot.TelegramBot.DownloadFileAsync(file.FilePath, bs);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
-                 DownLoad(field, "_"+path , name, id,type);
+                 DownLoad(field, "_"+path );
                     return;
                 }
                 Console.WriteLine($"Докачал файл {path}");
 
         }
 
-
-        static async void Send(string path,long id,Telegram.Bot.Types.Enums.MessageType type)
+        /// <summary>
+        /// Метод отправки файлов и тд , пользователю
+        /// </summary>
+        /// <param name="path">путь до файла</param>
+        /// <param name="id">ID телеграм пользователя</param>
+        /// <param name="type">тип файла</param>
+        static async void Send(string path, long id, Telegram.Bot.Types.Enums.MessageType type)
         {
-            switch (type)
+            await Bot.TelegramBot.SendTextMessageAsync(id, "Начата отправка файла , процесс может занять какое то время в зависимости от объема файла.");
+            using (BufferedStream bs2 = new BufferedStream(File.OpenRead(path)))
             {
-                case MessageType.Audio:
-                    using (BufferedStream bs2 = new BufferedStream(File.OpenRead(id + @"\" + type + @"\" + "AgADSAUAAuROiEo")))
-                    {
-                        InputOnlineFile iof = new InputOnlineFile(bs2, new FileInfo(id + @"\" + type + @"\" + "AgADSAUAAuROiEo").Name);
+                InputOnlineFile iof = new InputOnlineFile(bs2, new FileInfo(path).Name);
+                switch (type)
+                {
+                    case MessageType.Audio:
                         await Bot.TelegramBot.SendAudioAsync(
                             chatId: id,
                             audio: iof,
                             caption: "Ваш файл"
                             );
-                    }
-                    break;
-                case MessageType.Document:
-                using (BufferedStream bs2 = new BufferedStream(File.OpenRead(id + @"\" + type + @"\" + path)))
-                {
-                    InputOnlineFile iof = new InputOnlineFile(bs2, new FileInfo(id + @"\" + type + @"\" + path).Name);
-                    await Bot.TelegramBot.SendDocumentAsync(
-                        chatId: id,
-                        document: iof,
-                        caption: "Ваш файл"
-                        );
-                 }
-                    break;
-        }
-            
-        }
+                        break;
+                    case MessageType.Voice:
+                        await Bot.TelegramBot.SendVoiceAsync(
+                            chatId: id,
+                            voice: iof,
+                            caption: "Ваш файл"
+                            );
+                        break;
+                    case MessageType.Document:
+                        await Bot.TelegramBot.SendDocumentAsync(
+                            chatId: id,
+                            document: iof,
+                            caption: "Ваш файл"
+                            );
+                        break;
+                    case MessageType.Photo:
+                        await Bot.TelegramBot.SendPhotoAsync(
+                           chatId: id,
+                           photo: iof,
+                           caption: "Ваш файл"
+                           );
+                        break;
+                    case MessageType.Sticker:
+                        await Bot.TelegramBot.SendStickerAsync(
+                           chatId: id,
+                           sticker: iof
+                           );
+                        break;
+                }
 
-        static void createrFile(long id ,string name, string path,Telegram.Bot.Types.Enums.MessageType type)
+            }
+        }
+        /// <summary>
+        /// Метод для создания файлов в папках у разных пользователей сортированные по типу отправляемых файлов
+        /// </summary>
+        /// <param name="id">ID пользователя телеграм</param>
+        /// <param name="path">путь до файла</param>
+        /// <param name="type">тип файла</param>
+        static void createrFile(long id , string path,Telegram.Bot.Types.Enums.MessageType type)
         {
             FileInfo fi = new FileInfo(id + @"\" + type + @"\" + path);
 
@@ -254,6 +524,20 @@ namespace HomeWork_09
             {
                 Directory.CreateDirectory(fi.DirectoryName);
             }
+        }
+        /// <summary>
+        /// Метод для создания пути для файлов 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="path"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        static string CreaterPath(long id, string path, Telegram.Bot.Types.Enums.MessageType type)
+        {
+
+            string result = id + @"\" + type + @"\" + path;
+            if (!File.Exists(path)) createrFile(id, path, type);
+            return result;
         }
     }
 }
