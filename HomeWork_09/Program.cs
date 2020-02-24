@@ -18,6 +18,7 @@ namespace HomeWork_09
         
         public static void Main(string[] args)
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
             bool flag1 = false;
             bool flag2 = false;
             while (true)
@@ -34,9 +35,9 @@ namespace HomeWork_09
                 }
                 else flag1 = true;
 
-                if (!File.Exists("proxy.txt"))
+                if (!File.Exists("proxy.txt")&(flag2==false))
                 {
-                    Console.WriteLine("Хотите указать вашу прокси? в противном случае будет использована функция автопоиска прокси");
+                    Console.WriteLine("Хотите указать вашу прокси? в противном случае будет использована функция автопоиска прокси(Y - да : N - нет)");
                     while (true)
                     {
                         var key = Console.ReadKey(true);
@@ -50,6 +51,12 @@ namespace HomeWork_09
                             WebProxy wb = new WebProxy(host, port);
                             string json = JsonConvert.SerializeObject(wb);
                             File.WriteAllText("proxy.txt", json);
+                            break;
+                        }
+                        if(key.Key == ConsoleKey.N)
+                        {
+                            flag2 = true;
+                            break;
                         }
                     }
                 }
@@ -59,7 +66,7 @@ namespace HomeWork_09
             
                        
 
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+            
 
             Bot.Start();
             UsersBase.saveBase();

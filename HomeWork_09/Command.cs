@@ -20,27 +20,35 @@ namespace HomeWork_09
         {
             try
             {
-                Console.WriteLine("Пытаюсь подключится");
+                Console.WriteLine("~~Пытаюсь подключится~~");
                 var u = Bot.TelegramBot.TestApiAsync().Result;
-                Console.WriteLine(u);
+               // Console.WriteLine(u);
                 if (u)
                 {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Соединение установленно");
+                    Console.ForegroundColor = ConsoleColor.White;
                     ProxyParser.SaveCurrentProxy();
                 }
                 else
                 {
+                    Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Введен не верный токен для телеграм бота");
+                    Console.ForegroundColor = ConsoleColor.White;
                 }
 
                 Bot.TelegramBot.OnMessage += MessageParser;
                 Bot.TelegramBot.OnCallbackQuery += TypeOfFile;
 
                 Bot.TelegramBot.StartReceiving();
-
+                Console.ReadKey();
+                Bot.TelegramBot.StopReceiving();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Попытка соединения не удалась , меняем прокси");
+                Console.ForegroundColor = ConsoleColor.White;
                 ProxyParser.BadProxyRemove();
                 Bot.setBotWithProxy();
                 Start();
@@ -56,7 +64,8 @@ namespace HomeWork_09
         /// <param name="e"></param>
         static async void TypeOfFile(object sender, Telegram.Bot.Args.CallbackQueryEventArgs e)
         {
-            
+           Console.WriteLine(e.CallbackQuery.Message.MessageId);
+            await Bot.TelegramBot.EditMessageTextAsync(e.CallbackQuery.Message.Chat.Id,e.CallbackQuery.Message.MessageId,$"Выбор сделан");
             var mess = e.CallbackQuery.Data;
             Console.WriteLine(mess);
             switch (mess)
@@ -64,9 +73,10 @@ namespace HomeWork_09
                 case "Document":
                         DirectoryInfo di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Document");
                         var files = di.GetFiles();
-                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка документов");
+                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id,
+                        "Выбрана отправка документов");
                     await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
-                        "файла укзанное в < >");
+                        "файла укзанное в < >",replyMarkup: new ReplyKeyboardRemove());
                     foreach (var file in files)
                         {
                             await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, $"Имя файла - <{file.Name}>: \n" +
@@ -145,6 +155,7 @@ namespace HomeWork_09
                         Bot.TelegramBot.OnMessage += VoiceSender;
                     break;
             }
+  
         }
         /// <summary>
         /// ДЕсериализация файла с данными локации
@@ -266,7 +277,7 @@ namespace HomeWork_09
         {
             var inlineKeyboard = new InlineKeyboardMarkup(new[]
                                 {
-                        new [] 
+                        new []
                         {
                             InlineKeyboardButton.WithCallbackData("Document", $"{MessageType.Document}"),
                             InlineKeyboardButton.WithCallbackData("Photo", $"{MessageType.Photo}"),
@@ -275,7 +286,7 @@ namespace HomeWork_09
                             InlineKeyboardButton.WithCallbackData("Location", $"{MessageType.Location}"),
                             InlineKeyboardButton.WithCallbackData("Voice", $"{MessageType.Voice}")
                         }
-                    });
+                    }) ;
             await Bot.TelegramBot.SendTextMessageAsync(id,"Выберите нужный тип файла:",replyMarkup:inlineKeyboard);
         }
 
@@ -466,7 +477,9 @@ namespace HomeWork_09
         /// <param name="type">тип файла</param>
         static async void Send(string path, long id, Telegram.Bot.Types.Enums.MessageType type)
         {
+
             await Bot.TelegramBot.SendTextMessageAsync(id, "Начата отправка файла , процесс может занять какое то время в зависимости от объема файла.");
+            
             using (BufferedStream bs2 = new BufferedStream(File.OpenRead(path)))
             {
                 InputOnlineFile iof = new InputOnlineFile(bs2, new FileInfo(path).Name);
@@ -534,8 +547,12 @@ namespace HomeWork_09
         /// <returns></returns>
         static string CreaterPath(long id, string path, Telegram.Bot.Types.Enums.MessageType type)
         {
-
+            
             string result = id + @"\" + type + @"\" + path;
+            path = path.Trim(new char[] { ' ', '<', '>' });
+            Console.WriteLine(result);
+            result = result.Trim(new char[] { ' ', '<', '>' });
+            Console.WriteLine(result);
             if (!File.Exists(path)) createrFile(id, path, type);
             return result;
         }

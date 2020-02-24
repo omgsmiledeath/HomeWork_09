@@ -56,8 +56,9 @@ namespace HomeWork_09
         {
             using (StreamReader sr = new StreamReader("token.txt"))
             {
-                return sr.ReadToEnd();
+               return sr.ReadLine();
             }
+ 
         }
     }
 }

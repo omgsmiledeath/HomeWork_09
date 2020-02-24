@@ -24,6 +24,7 @@ namespace HomeWork_09
             using (WebClient wc = new WebClient())
             {
                 string htmp = wc.DownloadString($"https://sslproxies.org/");
+                //string htmp = wc.DownloadString($"https://free-proxy-list.net/");
                 Regex regex = new Regex(@"\d+(.)\d+(.)\d+(.)\d+(<\/td><td>)\d+");
                 MatchCollection mc = regex.Matches(htmp);
                 if (mc.Count > 0)
@@ -46,6 +47,7 @@ namespace HomeWork_09
         {
             if(proxylist.Count==1)
             {
+                proxylist.RemoveRange(0, 1);
                 getProxyList();
             }
             else proxylist.RemoveAt(0);
