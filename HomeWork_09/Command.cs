@@ -72,66 +72,103 @@ namespace HomeWork_09
             {
                 case "Document":
                         DirectoryInfo di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Document");
+                    if (di.Exists)
+                    {
                         var files = di.GetFiles();
-                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id,
-                        "Выбрана отправка документов");
-                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
-                        "файла укзанное в < >",replyMarkup: new ReplyKeyboardRemove());
-                    foreach (var file in files)
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id,
+                            "Выбрана отправка документов");
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
+                            "файла укзанное в < >", replyMarkup: new ReplyKeyboardRemove());
+                        foreach (var file in files)
                         {
                             await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, $"Имя файла - <{file.Name}>: \n" +
                                 $"Размер в КБ - {(float)file.Length / 1_024}");
-                    }
+                        }
                         Bot.TelegramBot.OnMessage -= MessageParser;
                         Bot.TelegramBot.OnMessage += DocumentSender;
+                    }
+                    else
+                    {
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id,
+                            "Сохраненных документов не обнаруженно");
+
+                    }
                         break;
 
                     case "Audio":
+                    
                         di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Audio");
-                        files = di.GetFiles();
-                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка аудио");
-                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
-                        "файла укзанное в < >");
-                    foreach (var file in files)
-                        {
-                            await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, $"Имя файла - <{file.Name}>: \n" +
-                                $"Размер в КБ - {(float)file.Length/1_024}");
-                        }
-                        Bot.TelegramBot.OnMessage -= MessageParser;
-                        Bot.TelegramBot.OnMessage += AudioSender;
-                    break;
-
-                    case "Sticker":
-                        di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Sticker");
-                        files = di.GetFiles();
-                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка стикеров");
-                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
-                        "файла укзанное в < >");
-                    foreach (var file in files)
+                    if (di.Exists)
+                    {
+                        var files = di.GetFiles();
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка аудио");
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
+                            "файла укзанное в < >");
+                        foreach (var file in files)
                         {
                             await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, $"Имя файла - <{file.Name}>: \n" +
                                 $"Размер в КБ - {(float)file.Length / 1_024}");
+                        }
+                        Bot.TelegramBot.OnMessage -= MessageParser;
+                        Bot.TelegramBot.OnMessage += AudioSender;
                     }
+                    else
+                    {
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id,
+                            "Сохраненных аудио не обнаруженно");
+                    }
+                    break;
+
+                    case "Sticker":
+
+                        di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Sticker");
+                    if (di.Exists)
+                    {
+                        var files = di.GetFiles();
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка стикеров");
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
+                            "файла укзанное в < >");
+                        foreach (var file in files)
+                        {
+                            await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, $"Имя файла - <{file.Name}>: \n" +
+                                $"Размер в КБ - {(float)file.Length / 1_024}");
+                        }
                         Bot.TelegramBot.OnMessage -= MessageParser;
                         Bot.TelegramBot.OnMessage += StickerSender;
+                    }
+                    else
+                    {
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id,
+                            "Сохраненных стикеров не обнаруженно");
+                    }
                     break;
 
                     case "Location":
                     await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка данных локаций");
                     di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Location");
-                        files = di.GetFiles();
+                    if (di.Exists)
+                    {
+                        var files = di.GetFiles();
                         foreach (var file in files)
                         {
-                        var loc = DeserializeLocation(file.FullName);
-                        await Bot.TelegramBot.SendLocationAsync(e.CallbackQuery.Message.Chat.Id,loc.latitude, loc.laptitude);
+                            var loc = DeserializeLocation(file.FullName);
+                            await Bot.TelegramBot.SendLocationAsync(e.CallbackQuery.Message.Chat.Id, loc.latitude, loc.laptitude);
                         }
+                    }
+                    else
+                    {
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id,
+                            "Сохраненных локаций не обнаруженно");
+                    }
                     break;
                     case "Photo":
                         di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Photo");
-                        files = di.GetFiles();
-                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка фото");
-                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
-                        "файла укзанное в < >");
+                    if (di.Exists)
+                    {
+                        var files = di.GetFiles();
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка фото");
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
+                            "файла укзанное в < >");
                         foreach (var file in files)
                         {
                             await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, $"Имя файла - <{file.Name}>: \n" +
@@ -139,20 +176,34 @@ namespace HomeWork_09
                         }
                         Bot.TelegramBot.OnMessage -= MessageParser;
                         Bot.TelegramBot.OnMessage += PhotoSender;
+                    }
+                    else
+                    {
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id,
+                            "Сохраненных фото не обнаруженно");
+                    }
                     break;
                     case "Voice":
                         di = new DirectoryInfo(e.CallbackQuery.Message.Chat.Id + @"\" + "Voice");
-                        files = di.GetFiles();
-                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка голосового файла");
-                    await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
-                        "файла укзанное в < >");
-                    foreach (var file in files)
+                    if (di.Exists)
+                    {
+                       var files = di.GetFiles();
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Выбрана отправка голосового файла");
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, "Вам необходимо отправить полностью название " +
+                            "файла укзанное в < >");
+                        foreach (var file in files)
                         {
                             await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id, $"Имя файла - <{file.Name}>: \n" +
                                 $"Размер в КБ - {(float)file.Length / 1_024}");
-                    }
+                        }
                         Bot.TelegramBot.OnMessage -= MessageParser;
                         Bot.TelegramBot.OnMessage += VoiceSender;
+                    }
+                    else
+                    {
+                        await Bot.TelegramBot.SendTextMessageAsync(e.CallbackQuery.Message.Chat.Id,
+                            "Сохраненных голосовых сообщений не обнаруженно");
+                    }
                     break;
             }
   
