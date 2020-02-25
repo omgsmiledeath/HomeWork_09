@@ -337,8 +337,18 @@ namespace HomeWork_09
                             InlineKeyboardButton.WithCallbackData("Location", $"{MessageType.Location}"),
                             InlineKeyboardButton.WithCallbackData("Voice", $"{MessageType.Voice}")
                         }
-                    }) ;
-            await Bot.TelegramBot.SendTextMessageAsync(id,"Выберите нужный тип файла:",replyMarkup:inlineKeyboard);
+                    });
+            try
+            {
+                await Bot.TelegramBot.SendTextMessageAsync(id, "Выберите нужный тип файла:", replyMarkup: inlineKeyboard);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                GetType(id);
+                return;
+            }
+            
         }
 
         /// <summary>
@@ -346,9 +356,20 @@ namespace HomeWork_09
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e">сообщений из телеграма</param>
-        static void MessageParser(object sender, Telegram.Bot.Args.MessageEventArgs e)
+        static async void MessageParser(object sender, Telegram.Bot.Args.MessageEventArgs e)
         {
-            
+            if(e.Message.Text=="/start")
+            {
+                await Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id,
+                    $"Добро пожаловать в бот файловое облако. Для описания бота /info ");
+                return;
+            }
+            if (e.Message.Text=="/info")
+            {
+                await Bot.TelegramBot.SendTextMessageAsync(e.Message.Chat.Id, 
+                    $"Вы можете отправлять : файлы , фото , аудио файлы, данные локации,голосовые сообщения и стикеры. Чтоб получить файлы обратно напишите команду /export ");
+            }
+
             switch (e.Message.Type)
             {
                 case MessageType.Text:
