@@ -23,19 +23,30 @@ namespace HomeWork_09
 
             using (WebClient wc = new WebClient())
             {
-                string htmp = wc.DownloadString($"https://sslproxies.org/");
-                //string htmp = wc.DownloadString($"https://free-proxy-list.net/");
-                Regex regex = new Regex(@"\d+(.)\d+(.)\d+(.)\d+(<\/td><td>)\d+");
-                MatchCollection mc = regex.Matches(htmp);
-                if (mc.Count > 0)
+                try
                 {
-                    Console.WriteLine("Добавление новых прокси в лист");
-                    foreach (Match e in mc)
+                    string htmp = wc.DownloadString($"https://sslproxies.org/");
+                    //string htmp = wc.DownloadString($"https://free-proxy-list.net/");
+                    Regex regex = new Regex(@"\d+(.)\d+(.)\d+(.)\d+(<\/td><td>)\d+");
+                    MatchCollection mc = regex.Matches(htmp);
+                    if (mc.Count > 0)
                     {
-                        string[] temp = e.Value.Split(new string[] { @"</td><td>" }, StringSplitOptions.None);
-                        proxylist.Add(new WebProxy(temp[0], int.Parse(temp[1])));
+                        Console.WriteLine("Добавление новых прокси в лист");
+                        foreach (Match e in mc)
+                        {
+                            string[] temp = e.Value.Split(new string[] { @"</td><td>" }, StringSplitOptions.None);
+                            proxylist.Add(new WebProxy(temp[0], int.Parse(temp[1])));
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine("Еще попытка");
+                    getProxyList();
+                    return;
+                }
+                
             };
             Console.WriteLine("Прокси лист составлен");
         }
